@@ -1530,3 +1530,21 @@ Supabase → Authentication → URL Configuration: Site URL = URL produksi; Redi
 1. Buka URL produksi di HP → login Google berhasil → data sama dengan di laptop.
 2. iPhone: Safari → Share → Add to Home Screen. Android: Chrome → menu → Install app. Ikon hijau muncul, app terbuka fullscreen tanpa address bar, tab bar tidak tertutup home indicator.
 3. Centang di HP → buka di laptop → centang muncul.
+
+---
+
+## Amendment 2026-09-29: login email + password (menggantikan Google OAuth)
+
+Diminta pemilik setelah Task 9. Kode `Login.jsx` di Task 5 diganti form email + password (`signInWithPassword`); tidak ada form daftar dan lupa password. Langkah manual di bawah **menggantikan** Task 4, Task 5 Step 6 (bagian manual), Task 6 item 8–9, dan Task 9 Step 7–8 item 1.
+
+**Setup (pengganti Task 4):**
+1. Buat project Supabase (region Singapore) → SQL Editor → jalankan `supabase/schema.sql`.
+2. Authentication → Users → Add user → Create new user: email + password pemilik, centang **Auto Confirm User**.
+3. Authentication → Sign In / Providers: matikan **"Allow new users to sign up"** (provider Email tetap aktif).
+4. Salin `.env.example` ke `.env.local`, isi Project URL + anon/publishable key. **Jangan pakai service_role/secret key.**
+
+**Cek manual:**
+1. `npm run dev` → login dengan email + password → tampil "Hari ini" + tab bar. Password salah → "Email atau password salah."
+2. **Uji RLS:** setelah akun utama punya minimal 1 habit, buat akun kedua lewat Add user → login di incognito → daftar habit kosong → hapus akun kedua.
+3. **Uji signup mati:** di console browser (tab app), jalankan `await (await import('/src/supabase.js')).supabase.auth.signUp({ email: 'x@example.com', password: 'xxxxxxxx' })` → Expected: error "Signups not allowed for this instance".
+4. Deploy: Redirect URLs tidak perlu diisi (tidak ada redirect OAuth). Buka URL produksi di HP → login email + password → data sama dengan di laptop.

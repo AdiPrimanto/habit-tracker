@@ -17,14 +17,14 @@ Web app habit tracker harian untuk **satu orang (pemilik)**, dipakai dari bebera
 |---|---|---|
 | Frontend | Vite + React, JavaScript | SPA statis, tidak butuh server sendiri |
 | Backend/DB | Supabase (Postgres + Auth + RLS) | Auth + DB + isolasi data per user tanpa backend custom |
-| Auth | Google OAuth saja | Login sekali tap per device; sesi bertahan lewat refresh token |
+| Auth | Email + password (Supabase Auth), tanpa form daftar | Tanpa setup pihak ketiga; akun dibuat di dashboard; sesi bertahan lewat refresh token |
 | Hosting | Vercel / Netlify / Cloudflare Pages (gratis) | Hosting statis |
 | Dependency | `@supabase/supabase-js`; dev: `vite`, `@vitejs/plugin-react`, `vitest` | Tanpa lib state/tanggal/UI |
 | Styling | CSS biasa, mobile-first | Cukup untuk 3 layar |
 
 ## 3. Fitur v1
 
-1. Login Google, logout.
+1. Login email + password, logout. Tidak ada daftar akun dan lupa password di app (reset password lewat dashboard Supabase).
 2. **Kelola habit:** tambah, ubah nama, atur hari terjadwal (Min–Sab), ubah urutan (naik/turun), arsipkan, pulihkan, hapus permanen.
 3. **Hari ini:** daftar habit aktif yang terjadwal hari ini, checkbox, streak 🔥, 7 kotak 7 hari terakhir (bisa diklik untuk edit hari lalu), ringkasan progres "3/5 selesai".
 4. **Riwayat:** grid ala GitHub per habit, 12 bulan terakhir; klik kotak untuk centang/batal hari lalu. Hari tidak terjadwal & hari sebelum `created_at` abu-abu, tidak bisa diklik. Hari masa depan tidak ditampilkan.
@@ -80,7 +80,7 @@ Aturan:
 
 - Frontend hanya memakai **anon/publishable key** (`VITE_SUPABASE_ANON_KEY`). **Service role key tidak boleh masuk ke frontend atau repo.**
 - RLS memastikan tiap akun hanya bisa membaca/menulis datanya sendiri.
-- Setelah pemilik login pertama kali, **"Allow new users to sign up" dimatikan** di Supabase Auth settings, supaya orang lain tidak bisa membuat akun.
+- Akun pemilik dibuat lewat dashboard Supabase (Add user, Auto Confirm). **"Allow new users to sign up" dimatikan** sejak awal, supaya orang lain tidak bisa membuat akun lewat API.
 - `.env.local` masuk `.gitignore`.
 
 ## 6. Struktur file
@@ -118,7 +118,7 @@ src/
 - **Toggle centang:** optimistic update → insert/delete ke Supabase → kalau gagal, kembalikan state + tampilkan pesan error (toast sederhana). Tidak boleh ada perubahan yang diam-diam tidak tersimpan.
 - **Sync antar-device:** reload data saat `document.visibilityState` menjadi `visible`.
 - **Tanggal lokal:** `new Date().toLocaleDateString('en-CA')` → `YYYY-MM-DD` sesuai zona waktu device. Aritmetika tanggal lewat `Date` lokal (set jam 12:00 untuk menghindari masalah DST).
-- **Auth:** `supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin } })`; `onAuthStateChange` mengatur tampil Login vs app.
+- **Auth:** `supabase.auth.signInWithPassword({ email, password })`; error `invalid_credentials` → "Email atau password salah."; `onAuthStateChange` mengatur tampil Login vs app.
 
 ## 8. Logika statistik (`stats.js`)
 
@@ -169,15 +169,13 @@ Batasan yang disadari: streak/longest dibatasi 365 hari data yang dimuat (cukup 
 ## 11. Testing
 
 - `src/stats.test.js` (Vitest): streak dengan hari tidak terjadwal, hari ini belum dicentang, putus di tengah, batas `created_at`, longestStreak, completionRate termasuk kasus "tidak ada hari terjadwal".
-- Uji manual RLS: login akun kedua (sebelum signup dimatikan) → pastikan data akun utama tidak terlihat.
+- Uji manual RLS: buat akun kedua lewat dashboard, login → pastikan data akun utama tidak terlihat, lalu hapus akun kedua.
 - Uji manual di HP: layout 375px, tab bar, install ke home screen, sync HP ↔ laptop.
 
 ## 12. Setup (manual, sekali)
 
 1. Buat project Supabase; jalankan `supabase/schema.sql` di SQL Editor.
-2. Google Cloud Console → buat OAuth Client ID (Web). Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`.
-3. Supabase → Authentication → Providers → Google: isi Client ID & Secret.
-4. Supabase → Authentication → URL Configuration: Site URL = URL produksi; Redirect URLs = `http://localhost:5173` + URL produksi.
-5. Isi `.env.local` dari `.env.example`.
-6. Login sekali dengan akun pemilik → matikan "Allow new users to sign up".
-7. Deploy ke hosting statis; set env var yang sama di hosting.
+2. Supabase → Authentication → Users → Add user → Create new user: isi email + password pemilik, centang **Auto Confirm User**.
+3. Supabase → Authentication → Sign In / Providers: matikan **"Allow new users to sign up"** (provider Email tetap aktif).
+4. Isi `.env.local` dari `.env.example`.
+5. Deploy ke hosting statis; set env var yang sama di hosting.
