@@ -18,15 +18,6 @@ export const addDays = (day, n) => {
 
 export const weekday = (day) => parse(day).getDay()
 
-export function getCurrentWeekDays(todayStr = todayKey()) {
-  const current = parse(todayStr)
-  const sunDiff = current.getDay() // 0 = Minggu
-  const sunday = new Date(current)
-  sunday.setDate(current.getDate() - sunDiff)
-  const sunKey = toKey(sunday)
-  return Array.from({ length: 7 }, (_, i) => addDays(sunKey, i))
-}
-
 export function formatShortDate(dayStr) {
   const d = parse(dayStr)
   return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })

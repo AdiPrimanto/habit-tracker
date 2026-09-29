@@ -62,7 +62,7 @@ export default function History({ habits, checkins, today, onOpen }) {
         <div className="header-top">
           <div>
             <span className="date-badge">
-              <Calendar size={14} /> 30 Hari Terakhir
+              <Calendar size={14} /> 12 Bulan Terakhir
             </span>
             <h1 className="header-title">Riwayat & Konsistensi</h1>
           </div>

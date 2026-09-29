@@ -46,10 +46,12 @@ export default function Today({ habits, checkins, today, onToggle, onOpen, onGoM
             <span className="date-badge">Hari Ini</span>
             <h1 className="header-title">{longDate(today)}</h1>
           </div>
-          <div className="progress-badge">
-            <Trophy size={16} className="trophy-icon" />
-            <span>{percentage}% Selesai</span>
-          </div>
+          {totalCount > 0 && (
+            <div className="progress-badge">
+              <Trophy size={16} className="trophy-icon" />
+              <span>{percentage}% Selesai</span>
+            </div>
+          )}
         </div>
 
         {totalCount > 0 && (
@@ -169,17 +171,16 @@ export default function Today({ habits, checkins, today, onToggle, onOpen, onGoM
                         <span className="week-day-dot">
                           {s === 'done' ? <Check size={12} strokeWidth={3} /> : dayDate.getDate()}
                         </span>
-                        <span className="week-day-subdate">{shortFormatted}</span>
                       </button>
                     )
                   })}
                 </div>
 
                 {note && (
-                  <div className="habit-note-box" onClick={() => onOpen(h, today)}>
+                  <button type="button" className="habit-note-box" onClick={() => onOpen(h, today)} aria-label={`Ubah catatan ${h.name}`}>
                     <FileText size={14} className="note-box-icon" />
                     <p className="note-text">{note}</p>
-                  </div>
+                  </button>
                 )}
               </li>
             )

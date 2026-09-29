@@ -3,9 +3,9 @@ import * as api from '../api'
 import { moveHabit } from '../habits'
 import { supabase } from '../supabase'
 import SearchBar from '../components/SearchBar'
-import { getCurrentWeekDays, formatShortDate, todayKey } from '../dates'
 import {
   Plus,
+  Save,
   Edit3,
   ArrowUp,
   ArrowDown,
@@ -26,26 +26,18 @@ const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
 const daysLabel = (days) => (days.length === 7 ? 'Setiap hari' : days.map((d) => DAY_LABELS[d]).join(', '))
 
 function DayPicker({ value, onChange }) {
-  const weekDates = getCurrentWeekDays()
   const flip = (i) => onChange(value.includes(i) ? value.filter((d) => d !== i) : [...value, i].sort((a, b) => a - b))
 
   return (
     <div className="days-picker" role="group" aria-label="Hari terjadwal">
-      {DAY_LABELS.map((label, i) => {
-        const dateStr = weekDates[i]
-        const shortDate = formatShortDate(dateStr)
-        const isToday = dateStr === todayKey()
-
-        return (
-          <label key={i} className={`day-chip ${isToday ? 'is-today-chip' : ''}`}>
-            <input type="checkbox" checked={value.includes(i)} onChange={() => flip(i)} />
-            <span className="day-chip-content">
-              <span className="day-name">{label}</span>
-              <span className="day-date">{shortDate}</span>
-            </span>
-          </label>
-        )
-      })}
+      {DAY_LABELS.map((label, i) => (
+        <label key={i} className="day-chip">
+          <input type="checkbox" checked={value.includes(i)} onChange={() => flip(i)} />
+          <span className="day-chip-content">
+            <span className="day-name">{label}</span>
+          </span>
+        </label>
+      ))}
     </div>
   )
 }
@@ -84,7 +76,7 @@ function HabitForm({ initial, submitLabel, onSubmit, onCancel }) {
       <div className="day-picker-container">
         <div className="form-label-row">
           <span className="form-label">
-            <CalendarIcon size={14} /> Pilih Jadwal Hari & Tanggal (Minggu Ini):
+            <CalendarIcon size={14} /> Ulangi setiap minggu pada hari:
           </span>
         </div>
         <DayPicker value={days} onChange={setDays} />
@@ -94,7 +86,7 @@ function HabitForm({ initial, submitLabel, onSubmit, onCancel }) {
 
       <div className="form-actions">
         <button type="submit" className="btn-primary" disabled={!valid || busy}>
-          <Plus size={16} />
+          {initial ? <Save size={16} /> : <Plus size={16} />}
           <span>{submitLabel}</span>
         </button>
         {onCancel && (
@@ -218,6 +210,7 @@ export default function Manage({ habits, mutate }) {
                         <button
                           className="btn-icon-action"
                           onClick={() => setEditing(h.id)}
+                          aria-label={`Ubah ${h.name}`}
                           title="Ubah Habit"
                         >
                           <Edit3 size={16} />
@@ -228,6 +221,7 @@ export default function Manage({ habits, mutate }) {
                           onClick={() =>
                             mutate(() => api.updateHabit(h.id, { archived_at: new Date().toISOString() }))
                           }
+                          aria-label={`Arsipkan ${h.name}`}
                           title="Arsipkan Habit"
                         >
                           <Archive size={16} />

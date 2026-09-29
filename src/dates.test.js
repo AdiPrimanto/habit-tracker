@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toKey, addDays, weekday, getCurrentWeekDays, formatShortDate } from './dates'
+import { toKey, addDays, weekday, formatShortDate } from './dates'
 
 describe('dates', () => {
   it('test berjalan di Asia/Jakarta', () => {
@@ -24,14 +24,6 @@ describe('dates', () => {
   it('weekday: 0=Minggu', () => {
     expect(weekday('2026-09-29')).toBe(2) // Selasa
     expect(weekday('2026-09-27')).toBe(0) // Minggu
-  })
-
-  it('getCurrentWeekDays mengembalikan 7 hari minggu ini dari Minggu ke Sabtu', () => {
-    const days = getCurrentWeekDays('2026-09-29') // Selasa
-    expect(days).toHaveLength(7)
-    expect(days[0]).toBe('2026-09-27') // Minggu
-    expect(days[2]).toBe('2026-09-29') // Selasa
-    expect(days[6]).toBe('2026-10-03') // Sabtu
   })
 
   it('formatShortDate memformat tanggal pendek indonesia', () => {
