@@ -17,7 +17,7 @@ export async function fetchAllPages(getPage, size = 1000) {
 }
 
 export async function loadAll(fromDay) {
-  const [habits, checkins] = await Promise.all([
+  const [habits, checkins, goals] = await Promise.all([
     supabase.from('habits').select('*').order('position').order('created_at').then(check),
     fetchAllPages((from, to) =>
       supabase
@@ -28,8 +28,10 @@ export async function loadAll(fromDay) {
         .order('day')
         .range(from, to),
     ),
+    // ponytail: tanpa paginasi; butuh >1000 target sebelum terpotong
+    supabase.from('goals').select('*').order('created_at', { ascending: false }).then(check),
   ])
-  return { habits, checkins }
+  return { habits, checkins, goals }
 }
 
 export const setChecked = (habit_id, day, checked) =>
@@ -50,3 +52,18 @@ export const updatePositions = (updates) =>
   Promise.all(updates.map(({ id, position }) => updateHabit(id, { position })))
 
 export const deleteHabit = (id) => supabase.from('habits').delete().eq('id', id).then(check)
+
+export async function createGoal(row) {
+  const { error } = await supabase.from('goals').insert(row)
+  if (error?.code === '23505') throw new Error('Habit ini sudah punya target berjalan.')
+  if (error) throw error
+}
+
+// Hanya target yang masih active; row yang dikembalikan = yang benar-benar diubah device ini
+export const finishGoal = (id, status, finished_on) =>
+  supabase.from('goals').update({ status, finished_on }).eq('id', id).eq('status', 'active').select().then(check)
+
+export async function archiveHabit(id, today) {
+  check(await supabase.from('goals').update({ status: 'cancelled', finished_on: today }).eq('habit_id', id).eq('status', 'active'))
+  return updateHabit(id, { archived_at: new Date().toISOString() })
+}

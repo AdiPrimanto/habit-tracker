@@ -1614,3 +1614,44 @@ button, input, textarea {
   outline: 2px solid var(--primary-500);
   outline-offset: 2px;
 }
+
+/* ==========================================================================
+   GOALS (styling dasar; visual final lewat docs/antigravity/goals-ui-prompt.md)
+   ========================================================================== */
+.goal-summary { margin-top: 10px; color: var(--primary-100); font-weight: 600; font-size: 0.9rem; }
+.goal-card { display: grid; gap: 8px; }
+.goal-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.goal-count { font-weight: 800; color: var(--primary-700); font-variant-numeric: tabular-nums; }
+.goal-progress { height: 10px; border-radius: var(--radius-full); background: var(--primary-100); overflow: hidden; }
+.goal-progress-fill { height: 100%; background: var(--grad-primary); border-radius: inherit; transition: width 0.3s ease; }
+.goal-history-row { width: 100%; min-height: 56px; display: flex; align-items: center; gap: 12px; padding: 10px 14px; text-align: left; border: 1px solid var(--line-color); border-radius: var(--radius-md); background: #fff; cursor: pointer; }
+.goal-history-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.goal-history-status { font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+.status-achieved { color: #16a34a; }
+.status-failed { color: #dc2626; }
+.status-cancelled { color: var(--slate-500); }
+.goal-history-row .habit-name { color: var(--slate-900); }
+.goal-duration-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.goal-duration-chips .is-selected { background: var(--primary-600); border-color: var(--primary-600); color: #fff; }
+.goal-custom-days { display: flex; align-items: center; gap: 8px; }
+.goal-custom-days .form-input { width: 110px; }
+.goal-stepper { display: flex; align-items: center; gap: 8px; }
+.goal-target-input { width: 90px; text-align: center; }
+.goal-detail-result { font-size: 1.1rem; }
+.goal-period-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.goal-notes { list-style: none; display: grid; gap: 6px; font-size: 0.9rem; color: var(--slate-700); }
+.goal-message { font-style: italic; color: var(--slate-700); line-height: 1.5; }
+.habit-goal-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; font-weight: 700; color: var(--primary-700); background: var(--primary-50); border: 1px solid var(--primary-200); border-radius: var(--radius-full); padding: 2px 8px; }
+
+.celebration-backdrop { align-items: center; padding: 16px; }
+.celebration { width: 100%; max-width: 380px; background: #fff; border-radius: var(--radius-lg); padding: 28px 20px 20px; text-align: center; display: grid; gap: 8px; box-shadow: var(--shadow-lg); }
+.celebration-anim { font-size: 64px; line-height: 1; animation: celebration-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.celebration-static .celebration-anim { animation: none; }
+.celebration-habit { font-weight: 700; font-size: 1.1rem; }
+.celebration-actions { display: grid; gap: 8px; margin-top: 8px; }
+@keyframes celebration-pop { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .celebration-anim, .goal-progress-fill { animation: none; transition: none; } }
+
+/* Tab bar 4 tombol: ikon di atas label supaya muat di 375px */
+.tabbar { grid-template-columns: repeat(4, 1fr); }
+.tab-btn { flex-direction: column; gap: 2px; padding: 4px; font-size: 0.72rem; min-height: 52px; }
