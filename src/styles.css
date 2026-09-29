@@ -1639,6 +1639,7 @@ button, input, textarea {
 .goal-target-input { width: 90px; text-align: center; }
 .goal-detail-result { font-size: 1.1rem; }
 .goal-period-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.goal-period-grid .cell-future { border: 1px dashed var(--slate-300); } /* hari yang belum tiba */
 .goal-notes { list-style: none; display: grid; gap: 6px; font-size: 0.9rem; color: var(--slate-700); }
 .goal-message { font-style: italic; color: var(--slate-700); line-height: 1.5; }
 .habit-goal-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; font-weight: 700; color: var(--primary-700); background: var(--primary-50); border: 1px solid var(--primary-200); border-radius: var(--radius-full); padding: 2px 8px; }

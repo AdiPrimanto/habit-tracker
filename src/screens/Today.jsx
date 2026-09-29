@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { addDays, formatShortDate } from '../dates'
 import { cellState, isScheduled, key, streak } from '../stats'
 import SearchBar from '../components/SearchBar'
-import { Flame, FileText, Plus, Check, Sparkles, Trophy, SearchX } from 'lucide-react'
+import { Flame, FileText, Plus, Check, Sparkles, Trophy, SearchX, Target } from 'lucide-react'
+import { goalInfo } from '../goals'
 
 const LABEL = { done: 'selesai', todo: 'belum', off: 'tidak terjadwal', future: '' }
 const longDate = (day) =>
@@ -10,8 +11,9 @@ const longDate = (day) =>
 
 const DAY_NAMES = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
 
-export default function Today({ habits, checkins, today, onToggle, onOpen, onGoManage }) {
+export default function Today({ habits, checkins, today, goals = [], onToggle, onOpen, onGoManage }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const goalByHabit = new Map(goals.map((g) => [g.habit_id, g]))
 
   if (!habits.length) {
     return (
@@ -110,6 +112,8 @@ export default function Today({ habits, checkins, today, onToggle, onOpen, onGoM
             const checked = checkins.has(k)
             const note = checkins.get(k)
             const currentStreak = streak(h, checkins, today)
+            const goal = goalByHabit.get(h.id)
+            const goalStat = goal && goalInfo(goal, h, checkins, today)
 
             return (
               <li key={h.id} className={`habit-card ${checked ? 'is-completed' : ''}`}>
@@ -128,6 +132,11 @@ export default function Today({ habits, checkins, today, onToggle, onOpen, onGoM
                   </label>
 
                   <div className="habit-meta">
+                    {goal && (
+                      <span className="habit-goal-chip" title={`Target: ${goalStat.done} dari ${goal.target}, sisa ${goalStat.daysLeft} hari`}>
+                        <Target size={12} /> {goalStat.done}/{goal.target} · {goalStat.daysLeft}h
+                      </span>
+                    )}
                     <div
                       className={`streak-pill ${currentStreak > 0 ? 'active' : ''}`}
                       title={`${currentStreak} hari berturut-turut`}

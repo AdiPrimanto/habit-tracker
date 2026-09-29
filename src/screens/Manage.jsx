@@ -3,6 +3,7 @@ import * as api from '../api'
 import { moveHabit } from '../habits'
 import { supabase } from '../supabase'
 import SearchBar from '../components/SearchBar'
+import { todayKey } from '../dates'
 import {
   Plus,
   Save,
@@ -219,7 +220,7 @@ export default function Manage({ habits, mutate }) {
                         <button
                           className="btn-icon-action archive-btn"
                           onClick={() =>
-                            mutate(() => api.updateHabit(h.id, { archived_at: new Date().toISOString() }))
+                            mutate(() => api.archiveHabit(h.id, todayKey()))
                           }
                           aria-label={`Arsipkan ${h.name}`}
                           title="Arsipkan Habit"
