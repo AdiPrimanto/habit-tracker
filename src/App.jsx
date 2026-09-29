@@ -8,11 +8,14 @@ import Today from './screens/Today'
 import History from './screens/History'
 import Manage from './screens/Manage'
 import NoteSheet from './NoteSheet'
+import BackgroundDecoration from './components/BackgroundDecoration'
+import SkeletonLoading from './components/SkeletonLoading'
+import { Calendar, History as HistoryIcon, Settings, AlertTriangle, RotateCcw } from 'lucide-react'
 
 const TABS = [
-  ['today', 'Hari ini'],
-  ['history', 'Riwayat'],
-  ['manage', 'Kelola'],
+  { id: 'today', label: 'Hari Ini', Icon: Calendar },
+  { id: 'history', label: 'Riwayat', Icon: HistoryIcon },
+  { id: 'manage', label: 'Kelola', Icon: Settings },
 ]
 
 export default function App() {
@@ -26,7 +29,6 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const [sheet, setSheet] = useState(null) // { habit, day }
   const pending = useRef(new Set())
-  // Naik tiap kali tulis mulai/selesai; hasil load yang overlap dengan tulis dibuang supaya tidak menimpa state optimistic
   const loadSeq = useRef(0)
 
   useEffect(() => {
@@ -114,7 +116,7 @@ export default function App() {
     } finally {
       loadSeq.current++
     }
-    if (!ok) load() // centang mungkin sudah dibatalkan di device lain; ambil keadaan sebenarnya
+    if (!ok) load()
     return ok
   }
 
@@ -131,40 +133,49 @@ export default function App() {
 
   if (session === undefined) return null
   if (!session) return <Login />
-  if (!loaded)
-    return (
-      <main className="page empty">
-        {loadError ? (
-          <>
-            <p className="error">Gagal memuat: {loadError}</p>
-            <button onClick={load}>Coba lagi</button>
-          </>
-        ) : (
-          <p className="muted">Memuat…</p>
-        )}
-      </main>
-    )
 
   const active = habits.filter((h) => !h.archived_at)
   const openSheet = (habit, day) => setSheet({ habit, day })
   const sheetKey = sheet && key(sheet.habit.id, sheet.day)
 
   return (
-    <>
-      <main className="page">
-        {tab === 'today' && (
-          <Today
-            habits={active}
-            checkins={checkins}
-            today={today}
-            onToggle={quickToggle}
-            onOpen={openSheet}
-            onGoManage={() => setTab('manage')}
-          />
-        )}
-        {tab === 'history' && <History habits={active} checkins={checkins} today={today} onOpen={openSheet} />}
-        {tab === 'manage' && <Manage habits={habits} mutate={mutate} />}
-      </main>
+    <div className="app-layout">
+      <BackgroundDecoration />
+
+      {!loaded ? (
+        <main className="page empty-loading-page">
+          {loadError ? (
+            <div className="error-card">
+              <AlertTriangle size={36} className="error-icon" />
+              <p className="error-msg">Gagal memuat data: {loadError}</p>
+              <button className="btn-primary" onClick={load}>
+                <RotateCcw size={16} />
+                <span>Coba Lagi</span>
+              </button>
+            </div>
+          ) : (
+            <SkeletonLoading />
+          )}
+        </main>
+      ) : (
+        <main className="page">
+          {tab === 'today' && (
+            <Today
+              habits={active}
+              checkins={checkins}
+              today={today}
+              onToggle={quickToggle}
+              onOpen={openSheet}
+              onGoManage={() => setTab('manage')}
+            />
+          )}
+          {tab === 'history' && (
+            <History habits={active} checkins={checkins} today={today} onOpen={openSheet} />
+          )}
+          {tab === 'manage' && <Manage habits={habits} mutate={mutate} />}
+        </main>
+      )}
+
       {sheet && (
         <NoteSheet
           key={sheetKey}
@@ -177,18 +188,28 @@ export default function App() {
           onClose={() => setSheet(null)}
         />
       )}
+
       {toast && (
         <div className="toast" role="status">
-          {toast}
+          <AlertTriangle size={16} />
+          <span>{toast}</span>
         </div>
       )}
+
+      {/* Floating Pill Bottom Tab Bar */}
       <nav className="tabbar">
-        {TABS.map(([id, label]) => (
-          <button key={id} aria-current={tab === id ? 'page' : undefined} onClick={() => setTab(id)}>
-            {label}
+        {TABS.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            aria-current={tab === id ? 'page' : undefined}
+            className={`tab-btn ${tab === id ? 'active' : ''}`}
+            onClick={() => setTab(id)}
+          >
+            <Icon size={20} className="tab-icon" />
+            <span className="tab-label">{label}</span>
           </button>
         ))}
       </nav>
-    </>
+    </div>
   )
 }

@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { supabase } from '../supabase'
+import BackgroundDecoration from '../components/BackgroundDecoration'
+import { Sparkles, Mail, Lock, LogIn, AlertCircle } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -21,14 +23,59 @@ export default function Login() {
   }
 
   return (
-    <main className="page login">
-      <h1>Habit Tracker</h1>
-      <form className="form" onSubmit={signIn}>
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" aria-label="Email" autoComplete="email" required />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" aria-label="Password" autoComplete="current-password" required />
-        <button type="submit" className="primary" disabled={busy}>{busy ? 'Masuk…' : 'Masuk'}</button>
-        {error && <p className="error" role="alert">{error}</p>}
-      </form>
-    </main>
+    <div className="login-screen-wrapper">
+      <BackgroundDecoration />
+      <main className="login-card-container">
+        <div className="login-brand">
+          <div className="login-logo-icon">
+            <Sparkles size={28} />
+          </div>
+          <h1>Habit Tracker</h1>
+          <p className="login-subtitle">Bangun kebiasaan baik setiap hari</p>
+        </div>
+
+        <form className="login-form" onSubmit={signIn}>
+          <div className="input-group">
+            <Mail className="input-field-icon" size={18} />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              aria-label="Email"
+              autoComplete="email"
+              required
+              className="login-input"
+            />
+          </div>
+
+          <div className="input-group">
+            <Lock className="input-field-icon" size={18} />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              aria-label="Password"
+              autoComplete="current-password"
+              required
+              className="login-input"
+            />
+          </div>
+
+          <button type="submit" className="btn-primary btn-login-submit" disabled={busy}>
+            <LogIn size={18} />
+            <span>{busy ? 'Memproses...' : 'Masuk'}</span>
+          </button>
+
+          {error && (
+            <div className="login-error-alert" role="alert">
+              <AlertCircle size={16} />
+              <span>{error}</span>
+            </div>
+          )}
+        </form>
+      </main>
+    </div>
   )
 }
