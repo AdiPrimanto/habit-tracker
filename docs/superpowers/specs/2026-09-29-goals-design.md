@@ -69,10 +69,11 @@ Semua fungsi menerima data, tidak memanggil Supabase. `goal = { id, habit_id, ta
 - `scheduledDaysBetween(habit, from, to) => number` — hari terjadwal (pakai `isScheduled`) dalam rentang, inklusif.
 - `maxTarget(habit, today, days) => number` — `scheduledDaysBetween(habit, today, today + days - 1)`.
 - `goalInfo(goal, habit, checkins, today) => { done, needed, daysLeft, reachable }`
-  - `done = goalProgress`, `needed = max(0, target - done)`, `daysLeft` = hari tersisa termasuk hari ini (0 kalau sudah lewat), `reachable = needed <= scheduledDaysBetween(habit, today, ends_on)` (hari ini dihitung hanya kalau belum dicentang).
+  - `done = goalProgress`, `needed = max(0, target - done)`, `daysLeft` = hari tersisa termasuk hari ini (0 kalau sudah lewat), `reachable = needed <=` jumlah hari terjadwal di periode (sampai `ends_on`) yang belum dicentang — termasuk hari lalu di periode, karena bisa dicentang susulan.
 - `achievedDayNumber(goal) => number` — `finished_on - starts_on + 1` (untuk "tercapai di hari ke-N").
-- `dueTransitions(goals, habits, checkins, today) => { achieve: goal[], fail: goal[] }` — untuk target `active`: `done >= target` → achieve; selain itu `ends_on < today` → fail.
+- `dueTransitions(goals, checkins, today) => { achieve: goal[], fail: goal[] }` — untuk target `active`: `done >= target` → achieve; selain itu `ends_on < today` → fail.
 - `suggestNextTarget(goal, habit, today, days) => number` — tercapai: `min(ceil(target * 1.1), maxTarget)`; tidak tercapai/batal: `min(target, maxTarget)`; minimal 1.
+- `newGoal({ habitId, target, days }, today) => { habit_id, target, starts_on, ends_on }`
 - `validateGoal({ target, days }, habit, today) => string | null` — `days` 1–365; `target` bulat 1–365; `target <= maxTarget`, kalau `maxTarget === 0` → "Tidak ada hari terjadwal di periode ini."
 
 `src/motivation.js`:
