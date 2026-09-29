@@ -26,6 +26,8 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const [sheet, setSheet] = useState(null) // { habit, day }
   const pending = useRef(new Set())
+  // Naik tiap kali tulis mulai/selesai; hasil load yang overlap dengan tulis dibuang supaya tidak menimpa state optimistic
+  const loadSeq = useRef(0)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -36,13 +38,16 @@ export default function App() {
   const load = useCallback(async () => {
     const t = todayKey()
     setToday(t)
+    const seq = ++loadSeq.current
     try {
       const data = await api.loadAll(addDays(t, -WINDOW))
+      if (seq !== loadSeq.current) return
       setHabits(data.habits)
       setCheckins(new Map(data.checkins.map((r) => [key(r.habit_id, r.day), r.note])))
       setLoadError(null)
       setLoaded(true)
     } catch (e) {
+      if (seq !== loadSeq.current) return
       setLoadError(e.message)
       setToast(`Gagal memuat: ${e.message}`)
     }
@@ -67,6 +72,7 @@ export default function App() {
     const k = key(habitId, day)
     if (pending.current.has(k) || day > todayKey()) return
     pending.current.add(k)
+    loadSeq.current++
     const wasChecked = checkins.has(k)
     const prevNote = checkins.get(k) ?? null
     setCheckins((m) => {
@@ -85,6 +91,7 @@ export default function App() {
       setToast(`Gagal menyimpan: ${e.message}`)
     } finally {
       pending.current.delete(k)
+      loadSeq.current++
     }
   }
 
@@ -96,14 +103,19 @@ export default function App() {
     const prev = checkins.get(k) ?? null
     const note = text.trim() || null
     setCheckins((m) => new Map(m).set(k, note))
+    loadSeq.current++
+    let ok = false
     try {
       await api.saveNote(habitId, day, note)
-      return true
+      ok = true
     } catch (e) {
       setCheckins((m) => new Map(m).set(k, prev))
       setToast(`Gagal menyimpan catatan: ${e.message}`)
-      return false
+    } finally {
+      loadSeq.current++
     }
+    if (!ok) load() // centang mungkin sudah dibatalkan di device lain; ambil keadaan sebenarnya
+    return ok
   }
 
   const mutate = async (fn) => {

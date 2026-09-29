@@ -16,7 +16,6 @@ export default function NoteSheet({ habit, day, checked, note, onToggle, onSave,
   const uncheck = () => {
     if (note && !confirming) return setConfirming(true)
     setConfirming(false)
-    setText('')
     onToggle()
   }
 

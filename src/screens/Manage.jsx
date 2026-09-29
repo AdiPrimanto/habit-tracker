@@ -25,13 +25,15 @@ function DayPicker({ value, onChange }) {
 function HabitForm({ initial, submitLabel, onSubmit, onCancel }) {
   const [name, setName] = useState(initial?.name ?? '')
   const [days, setDays] = useState(initial?.days ?? ALL_DAYS)
+  const [busy, setBusy] = useState(false)
   const trimmed = name.trim()
   const valid = trimmed.length >= 1 && trimmed.length <= 100 && days.length > 0
 
   const submit = async (e) => {
     e.preventDefault()
-    if (!valid) return
-    const ok = await onSubmit({ name: trimmed, days })
+    if (!valid || busy) return
+    setBusy(true)
+    const ok = await onSubmit({ name: trimmed, days }).finally(() => setBusy(false))
     if (ok && !initial) {
       setName('')
       setDays(ALL_DAYS)
@@ -44,7 +46,7 @@ function HabitForm({ initial, submitLabel, onSubmit, onCancel }) {
       <DayPicker value={days} onChange={setDays} />
       {days.length === 0 && <p className="error">Pilih minimal 1 hari.</p>}
       <div className="actions">
-        <button type="submit" className="primary" disabled={!valid}>{submitLabel}</button>
+        <button type="submit" className="primary" disabled={!valid || busy}>{submitLabel}</button>
         {onCancel && <button type="button" onClick={onCancel}>Batal</button>}
       </div>
     </form>
