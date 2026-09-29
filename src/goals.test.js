@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   periodDays, goalDays, goalProgress, scheduledDaysBetween, maxTarget, goalInfo,
-  achievedDayNumber, dueTransitions, suggestNextTarget, newGoal, validateGoal,
+  achievedDayNumber, achievedOn, dueTransitions, suggestNextTarget, newGoal, validateGoal,
 } from './goals'
 import { key } from './stats'
 
@@ -118,4 +118,10 @@ describe('validateGoal', () => {
   it('tidak ada hari terjadwal', () => {
     expect(validateGoal({ target: 1, days: 1 }, mwf, TODAY)).toBe('Tidak ada hari terjadwal di periode ini.')
   })
+})
+
+describe('achievedOn', () => {
+  it('hari ini kalau masih di dalam periode', () => expect(achievedOn(goal(), TODAY)).toBe(TODAY))
+  it('dibatasi ends_on kalau tercapai lewat centang susulan setelah periode habis', () =>
+    expect(achievedOn(goal(), '2026-10-10')).toBe('2026-10-03'))
 })

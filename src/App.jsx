@@ -15,7 +15,7 @@ import GoalForm from './components/GoalForm'
 import GoalDetail from './components/GoalDetail'
 import Celebration from './components/Celebration'
 import GoalMissed from './components/GoalMissed'
-import { dueTransitions, goalProgress, goalDays, newGoal, suggestNextTarget } from './goals'
+import { achievedOn, dueTransitions, goalProgress, goalDays, newGoal, suggestNextTarget } from './goals'
 import { ACHIEVED_MESSAGES, ANIMATIONS, FAILED_MESSAGES, pickRandom } from './motivation'
 import { Calendar, History as HistoryIcon, Settings, AlertTriangle, RotateCcw, Target } from 'lucide-react'
 
@@ -51,16 +51,17 @@ export default function App() {
   // Target yang sudah tercapai/lewat periode tapi masih active (mis. centang dari device lain)
   const settleGoals = async (list, map, t) => {
     const { achieve, fail } = dueTransitions(list, map, t)
-    const jobs = [...achieve.map((g) => api.finishGoal(g.id, 'achieved', t)), ...fail.map((g) => api.finishGoal(g.id, 'failed', g.ends_on))]
+    const jobs = [...achieve.map((g) => api.finishGoal(g.id, 'achieved', achievedOn(g, t))), ...fail.map((g) => api.finishGoal(g.id, 'failed', g.ends_on))]
     if (!jobs.length) return
-    try {
-      const rows = (await Promise.all(jobs)).flat()
-      setGoals((gs) => gs.map((g) => rows.find((r) => r.id === g.id) ?? g))
-      const failed = rows.filter((r) => r.status === 'failed')
-      if (failed.length) setMissed((q) => [...q, ...failed.map((g) => ({ goalId: g.id, message: pick('failed', FAILED_MESSAGES) }))])
-    } catch (e) {
-      setToast(`Gagal memperbarui target: ${e.message}`)
-    }
+    // allSettled: satu request gagal tidak boleh membuang hasil request lain yang sudah tersimpan
+    const results = await Promise.allSettled(jobs)
+    const rows = results.filter((r) => r.status === 'fulfilled').flatMap((r) => r.value)
+    const rejected = results.find((r) => r.status === 'rejected')
+    if (rejected) setToast(`Gagal memperbarui target: ${rejected.reason.message}`)
+    if (!rows.length) return
+    setGoals((gs) => gs.map((g) => rows.find((r) => r.id === g.id) ?? g))
+    const failed = rows.filter((r) => r.status === 'failed')
+    if (failed.length) setMissed((q) => [...q, ...failed.map((g) => ({ goalId: g.id, message: pick('failed', FAILED_MESSAGES) }))])
   }
 
   useEffect(() => {
@@ -142,7 +143,7 @@ export default function App() {
 
   const achieveGoal = async (goal) => {
     try {
-      const [row] = await api.finishGoal(goal.id, 'achieved', todayKey())
+      const [row] = await api.finishGoal(goal.id, 'achieved', achievedOn(goal, todayKey()))
       if (!row) return // sudah diselesaikan device lain
       setGoals((gs) => gs.map((g) => (g.id === row.id ? row : g)))
       setCelebration({ goalId: row.id, variant: pick('anim', ANIMATIONS), message: pick('achieved', ACHIEVED_MESSAGES) })
@@ -211,7 +212,11 @@ export default function App() {
     const failedLike = goal.status !== 'achieved'
     setGoalDetail({ goalId: goal.id, message: failedLike ? pick('failed', FAILED_MESSAGES) : pick('achieved', ACHIEVED_MESSAGES) })
   }
-  const submitGoal = ({ habitId, target, days }) => mutate(() => api.createGoal(newGoal({ habitId, target, days }, todayKey())))
+  const submitGoal = async ({ habitId, target, days }) => {
+    const ok = await mutate(() => api.createGoal(newGoal({ habitId, target, days }, todayKey())))
+    if (!ok) load() // mis. habit sudah punya target dari device lain; segarkan daftar habit yang bisa dipilih
+    return ok
+  }
   const cancelGoal = (goal) => mutate(() => api.finishGoal(goal.id, 'cancelled', todayKey()))
   const detailGoal = goalDetail && goalById.get(goalDetail.goalId)
   const celebrationGoal = celebration && goalById.get(celebration.goalId)

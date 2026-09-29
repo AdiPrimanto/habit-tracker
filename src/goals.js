@@ -35,6 +35,9 @@ export function goalInfo(goal, habit, checkins, today) {
 
 export const achievedDayNumber = (goal) => daysBetween(goal.starts_on, goal.finished_on).length
 
+// Tercapai lewat centang susulan setelah periode habis tetap tercatat di dalam periode
+export const achievedOn = (goal, today) => (today > goal.ends_on ? goal.ends_on : today)
+
 export function dueTransitions(goals, checkins, today) {
   const active = goals.filter((g) => g.status === 'active')
   return {
